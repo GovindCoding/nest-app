@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  dev:
+    container_name: nestjs_api_dev
+    image: nest-app:v1
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:debug
+    ports:
+      - 3003:3003
+      - 9229:9229
+    networks:
+      - nesjs-network
+    volumes:
+      - .:/home/app
+      - /home/app/node_modules
+    restart: unless-stopped
+  prod:
+    container_name: nestjs_api_prod
+    image: nest-app:v1
+    build:
+      context: .
+      target: production
+      dockerfile: ./Dockerfile
+    command: npm run start:prod
+    ports:
+      - 3003:3003
+      - 9229:9229
+    networks:
+      - nesjs-network
+    volumes:
+      - .:/home/app
+      - /home/app/node_modules
+    restart: unless-stopped
+    
+  mysql:
+    image: mysql:5.7
+    networks:
+      - nesjs-network
+    environment:
+      - MYSQL_ROOT_PASSWORD=Anka@1234
+      - MYSQL_USER=db_user
+      - MYSQL_PASSWORD=Anka@1234 
+      - MYSQL_DATABASE=node_app
+    container_name: mysql-app
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4.7
+    depends_on:
+      - mysql
+    networks:
+      - nesjs-network
+    ports:
+      - "30002:80"
+    environment:
+      - PMA_HOST=mysql-app
+      - PMA_PORT= 3306
+    volumes:
+      - /sessions
+    container_name: phpmyadmin-app
+
+networks:
+    nesjs-network:
